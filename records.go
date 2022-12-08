@@ -38,12 +38,12 @@ func (re *Records) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Ms
 		if r.Header().Rrtype == dns.TypeSOA && soa == nil {
 			soa = r
 		}
-		if r.Header().Name == qname {
-			nxdomain = false
-			if r.Header().Rrtype == state.QType() {
-				m.Answer = append(m.Answer, r)
-			}
+		
+		nxdomain = false
+		if r.Header().Rrtype == state.QType() {
+			m.Answer = append(m.Answer, r)
 		}
+		
 	}
 
 	// handle NXDOMAIN, NODATA and normal response here.
