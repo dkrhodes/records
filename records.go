@@ -2,6 +2,7 @@ package records
 
 import (
 	"context"
+	"strings"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/request"
@@ -38,12 +39,21 @@ func (re *Records) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Ms
 		if r.Header().Rrtype == dns.TypeSOA && soa == nil {
 			soa = r
 		}
-		
+
 		nxdomain = false
 		if r.Header().Rrtype == state.QType() {
+			if mx, ok := r.(*dns.MX); ok {
+				mxR := *mx
+				mxR.Hdr.Name = strings.TrimLeft(r.Header().Name+qname, ".")
+				mxR.Mx = strings.Join([]string{mxR.Mx + qname}, ".")
+				r = &mxR
+			} else if a, ok := r.(*dns.A); ok {
+				aR := *a
+				aR.Hdr.Name = qname
+				r = &aR
+			}
 			m.Answer = append(m.Answer, r)
 		}
-		
 	}
 
 	// handle NXDOMAIN, NODATA and normal response here.
